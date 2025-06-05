@@ -1,17 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/login';
 import Calculator from './components/calculator';
 
 function App() {
-  const isLoggedIn = !!localStorage.getItem('token');
-
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/calculator" element={isLoggedIn ? <Calculator /> : <Navigate to="/" />} />
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/calculator" element={<Calculator />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 

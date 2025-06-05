@@ -1,97 +1,92 @@
-import { useState, useEffect } from 'react';
+// src/components/Calculator.js
+import React, { useState } from 'react';
 import API from '../api';
+import { useNavigate } from 'react-router-dom';
 
-export default function Calculator() {
-  const [a, setA] = useState('');
-  const [b, setB] = useState('');
+const Calculator = () => {
+  const [operand1, setOperand1] = useState('');
+  const [operand2, setOperand2] = useState('');
   const [operation, setOperation] = useState('add');
   const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const calculate = async () => {
+  const handleCalculate = async (e) => {
+    e.preventDefault();
     setError('');
-    if (a === '' || b === '') {
-      return setError('Please enter both numbers.');
-    }
-    setLoading(true);
     try {
-      const res = await API.post('/calculator', { a: Number(a), b: Number(b), operation });
-      setResult(res.data.result);
-      fetchHistory();
+      const response = await API.post('/calculator', {
+        a: Number(operand1),
+        b: Number(operand2),
+        operation,
+      });
+
+      setResult(response.data.result);
     } catch (err) {
-      alert('Calculation error.');
-    } finally {
-      setLoading(false);
+      setError('Calculation failed: ' + (err.response?.data?.error || err.message));
     }
   };
 
-  const fetchHistory = async () => {
-    try {
-      const res = await API.get('/calculations?limit=5');
-      setHistory(res.data);
-    } catch (err) {
-      console.error('History fetch error.');
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
   };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 border rounded">
-      <h2 className="text-xl font-bold mb-4">Calculator</h2>
-      {error && <div className="text-red-500 mb-2">{error}</div>}
-      <div className="mb-3">
-        <input
-          type="number"
-          placeholder="a"
-          className="mr-2 p-2 border"
-          value={a}
-          onChange={(e) => setA(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="b"
-          className="mr-2 p-2 border"
-          value={b}
-          onChange={(e) => setB(e.target.value)}
-        />
-        <select
-          className="p-2 border"
-          value={operation}
-          onChange={(e) => setOperation(e.target.value)}
-        >
-          <option value="add">+</option>
-          <option value="subtract">−</option>
-          <option value="multiply">×</option>
-          <option value="divide">÷</option>
-        </select>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 flex-col">
+      <div className="bg-white p-6 rounded shadow-md w-96">
+        <h2 className="text-2xl font-bold mb-4 text-center">Calculator</h2>
+        <form onSubmit={handleCalculate}>
+          <input
+            type="number"
+            placeholder="First number"
+            value={operand1}
+            onChange={(e) => setOperand1(e.target.value)}
+            className="w-full p-2 mb-3 border rounded"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Second number"
+            value={operand2}
+            onChange={(e) => setOperand2(e.target.value)}
+            className="w-full p-2 mb-3 border rounded"
+            required
+          />
+          <select
+            value={operation}
+            onChange={(e) => setOperation(e.target.value)}
+            className="w-full p-2 mb-3 border rounded"
+          >
+            <option value="add">Add (+)</option>
+            <option value="subtract">Subtract (-)</option>
+            <option value="multiply">Multiply (×)</option>
+            <option value="divide">Divide (÷)</option>
+          </select>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          >
+            Calculate
+          </button>
+        </form>
+        {result !== null && (
+          <div className="mt-4 text-center text-green-600 font-semibold">
+            Result: {result}
+          </div>
+        )}
+        {error && (
+          <div className="mt-4 text-center text-red-600 font-semibold">{error}</div>
+        )}
       </div>
       <button
-        onClick={calculate}
-        className="bg-green-500 text-white px-4 py-2 rounded"
-        disabled={loading}
+        onClick={handleLogout}
+        className="mt-6 text-sm text-gray-600 underline"
       >
-        {loading ? 'Calculating...' : 'Calculate'}
+        Logout
       </button>
-
-      {result !== null && (
-        <div className="mt-4 text-xl font-semibold">Result: {result}</div>
-      )}
-
-      <div className="mt-6">
-        <h3 className="font-bold mb-2">Recent History</h3>
-        <ul className="list-disc pl-5">
-          {history.map((item, index) => (
-            <li key={index}>
-              {item.a} {item.operation} {item.b} = {item.result} ({item.created_at})
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
-}
+};
+
+export default Calculator;
