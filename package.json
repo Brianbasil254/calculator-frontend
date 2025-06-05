@@ -24,7 +24,6 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
-  "homepage": "https://Brianbasil254.github.io/calculator-frontend",
   "eslintConfig": {
     "extends": [
       "react-app",
